@@ -1,0 +1,81 @@
+#!/usr/bin/env python
+# vim: set fileencoding=utf-8:
+
+import datetime
+import receiptdb
+
+def make_graphics(html, year, entries):
+	print >>html, "<h1>Vuosi %s" % year
+	print >>html, "<table><tr><td><td>"
+	monthnames = { 1:"Tammikuu", 2:"Helmikuu", 3:"Maaliskuu", 4:"Huhtikuu", 5:"Toukokuu", 6:"Kesäkuu", 7:"Heinäkuu", 8:"Elokuu", 9:"Syyskuu", 10:"Lokakuu", 11:"Marraskuu", 12:"Joulukuu" }
+	data = [sum([item[2] for item in entries if item[0].month==m]) for m in monthnames.keys()]
+	limit = max(data)
+	for m in monthnames.keys():
+		WIDTH=300
+		bars = [sum([item[2] for item in entries if item[0].month==m and receiptdb.category_canonicalize(item[1])==cat])/float(limit)*WIDTH for cat in ["ruoka", "matkustus", "vaatteet", "muut"]]
+		print >>html, "<tr><td>%s" % monthnames[m]
+		print >>html, "<td><table cellspacing=0 cellpadding=0>"
+		print >>html, "<td height=16 width=%d bgcolor=green>" % bars[0]
+		print >>html, "<td height=16 width=%d bgcolor=red>" % bars[1]
+		print >>html, "<td height=16 width=%d bgcolor=blue>" % bars[2]
+		print >>html, "<td height=16 width=%d bgcolor=gray>" % bars[3]
+		print >>html, "</table>"
+	print >>html, "</table>"
+
+def make_table(html, year, entries):
+	print >>html, "<h1>Vuosi %s</h1>" % year
+	print >>html, "<table><tr><th>"
+	monthnames = { 1:"Tammikuu", 2:"Helmikuu", 3:"Maaliskuu", 4:"Huhtikuu", 5:"Toukokuu", 6:"Kesäkuu", 7:"Heinäkuu", 8:"Elokuu", 9:"Syyskuu", 10:"Lokakuu", 11:"Marraskuu", 12:"Joulukuu" }
+	if year == datetime.date.today().year:
+		m=datetime.date.today().month+1
+		while m<=12:
+			del monthnames[m]
+			m+=1
+	for m in monthnames.values():
+		print >>html, "<th>%s" % m
+	print >>html, "<th bgcolor=#CCCC33>Summa"
+	print >>html, "<th bgcolor=#00CC66>Keskiarvo"
+	for cat in ["ruoka", "matkustus", "vaatteet", "muut"]:
+		print >>html, "<tr><td>%s" % cat.capitalize()
+		year_amount=0
+		for m in monthnames.keys():
+			month_amount=0
+			for c in entries:
+				if c[0].month == m and receiptdb.category_canonicalize(c[1])==cat:
+					month_amount += c[2]
+					year_amount += c[2]
+			print >>html, "<td>%d,%02d €" % (month_amount/100, month_amount%100)
+		print >>html, "<td bgcolor=#CCCC33>%d,%02d €" % ((year_amount/100), (year_amount%100))
+		print >>html, "<td bgcolor=#00CC66>%d,%02d €" % ((year_amount/len(monthnames)/100), (year_amount/len(monthnames)%100))
+	monthsums = {}
+	for m in monthnames.keys():
+		monthsums[m] = 0
+	for cat in ["ruoka", "matkustus", "vaatteet", "muut"]:
+		for c in entries:
+			if receiptdb.category_canonicalize(c[1])==cat:
+				monthsums[c[0].month] += c[2]
+	print >>html, "<tr><td>"
+	for m in monthsums.values():
+		print >>html, "<td bgcolor=#CCCC33>%d,%02d €" % (m/100, m%100)
+	print >>html, "<td bgcolor=#CCCC33>%d,%02d €" % (sum(monthsums.values())/100, sum(monthsums.values())%100)
+	print >>html, "</tr>"
+	print >>html, "</table>"
+
+def years(db):
+	yrs = []
+	for item in db:
+		if item[0].year not in yrs:
+			yrs.append(item[0].year)
+	yrs.sort()
+	return yrs
+
+def db_subset_y(db, year):
+	return [item for item in db if item[0].year == year]
+
+receipts = receiptdb.parse_db("receipts")
+htmlfile = open("receipts.html", "w")
+print >>htmlfile, '<html><head><meta http-equiv="Content-Type" content="text/html; charset=utf-8"></head>'
+for y in years(receipts):
+	make_graphics(htmlfile, y, db_subset_y(receipts, y))
+for y in years(receipts):
+	make_table(htmlfile, y, db_subset_y(receipts, y))

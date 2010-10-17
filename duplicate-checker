@@ -1,0 +1,17 @@
+#!/usr/bin/env python
+# vim: set fileencoding=utf-8:
+
+import receiptdb
+
+receipts = receiptdb.parse_db("receipts")
+receipts.sort()
+receipts_canon = []
+for k in receipts:
+	date,category,cents,info = k
+	receipts_canon.append((date,receiptdb.category_canonicalize(category),cents))
+receipts = receipts_canon
+prev = receipts.pop()
+for k in receipts:
+	if prev==k:
+		print "DUPLICATE:", k
+	prev=k
