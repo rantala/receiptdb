@@ -60,9 +60,9 @@ def make_table(html, year, entries):
 				if c[0].month == m and receiptdb.category_canonicalize(c[1])==cat:
 					month_amount += c[2]
 					year_amount += c[2]
-			print >>html, "<td>%d,%02d €" % (month_amount/100, month_amount%100)
-		print >>html, "<td bgcolor=#CCCC33>%d,%02d €" % ((year_amount/100), (year_amount%100))
-		print >>html, "<td bgcolor=#00CC66>%d,%02d €" % ((year_amount/len(monthnames)/100), (year_amount/len(monthnames)%100))
+			print >>html, "<td>%d,%02d&nbsp;€" % (month_amount/100, month_amount%100)
+		print >>html, "<td bgcolor=#CCCC33>%d,%02d&nbsp;€" % ((year_amount/100), (year_amount%100))
+		print >>html, "<td bgcolor=#00CC66>%d,%02d&nbsp;€" % ((year_amount/len(monthnames)/100), (year_amount/len(monthnames)%100))
 	monthsums = {}
 	for m in monthnames.keys():
 		monthsums[m] = 0
@@ -72,8 +72,8 @@ def make_table(html, year, entries):
 				monthsums[c[0].month] += c[2]
 	print >>html, "<tr><td>"
 	for m in monthsums.values():
-		print >>html, "<td bgcolor=#CCCC33>%d,%02d €" % (m/100, m%100)
-	print >>html, "<td bgcolor=#CCCC33>%d,%02d €" % (sum(monthsums.values())/100, sum(monthsums.values())%100)
+		print >>html, "<td bgcolor=#CCCC33>%d,%02d&nbsp;€" % (m/100, m%100)
+	print >>html, "<td bgcolor=#CCCC33>%d,%02d&nbsp;€" % (sum(monthsums.values())/100, sum(monthsums.values())%100)
 	print >>html, "</tr>"
 	print >>html, "</table>"
 
